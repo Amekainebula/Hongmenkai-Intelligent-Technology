@@ -3,9 +3,18 @@ const mainNav = document.querySelector(".main-nav");
 const navLinks = Array.from(document.querySelectorAll(".main-nav a"));
 const sections = Array.from(document.querySelectorAll("main section[id]"));
 const productPanels = Array.from(document.querySelectorAll(".product-panel"));
+const productFilters = Array.from(document.querySelectorAll(".product-filter"));
+const productResult = document.querySelector(".product-result");
+const contactReturn = document.querySelector(".contact-return");
 const topLinks = Array.from(document.querySelectorAll('a[href="#top"]'));
 let productDialog = null;
 let productCarouselTimer = null;
+let imageViewer = null;
+let viewerImages = [];
+let viewerIndex = 0;
+let viewerTitle = "产品图片";
+let viewerReturnFocus = null;
+let consultationOrigin = null;
 
 const productDetails = {
   "product-electric-gate": {
@@ -193,6 +202,7 @@ const observer = new IntersectionObserver(
 sections.forEach((section) => observer.observe(section));
 
 function closeProductDetail() {
+  closeImageViewer(false);
   if (productCarouselTimer) {
     clearInterval(productCarouselTimer);
     productCarouselTimer = null;
@@ -200,6 +210,103 @@ function closeProductDetail() {
   productDialog?.remove();
   productDialog = null;
   document.body.classList.remove("detail-open");
+}
+
+function updateImageViewer() {
+  if (!imageViewer || viewerImages.length === 0) return;
+
+  const image = imageViewer.querySelector(".image-viewer-image");
+  const counter = imageViewer.querySelector(".image-viewer-counter");
+  const previousButton = imageViewer.querySelector(".image-viewer-prev");
+  const nextButton = imageViewer.querySelector(".image-viewer-next");
+
+  if (image) {
+    image.src = viewerImages[viewerIndex];
+    image.alt = `${viewerTitle}大图 ${viewerIndex + 1}`;
+  }
+  if (counter) {
+    counter.textContent = `${viewerIndex + 1} / ${viewerImages.length}`;
+  }
+
+  const hasMultipleImages = viewerImages.length > 1;
+  previousButton?.toggleAttribute("hidden", !hasMultipleImages);
+  nextButton?.toggleAttribute("hidden", !hasMultipleImages);
+}
+
+function changeViewerImage(direction) {
+  if (viewerImages.length < 2) return;
+  viewerIndex = (viewerIndex + direction + viewerImages.length) % viewerImages.length;
+  updateImageViewer();
+}
+
+function closeImageViewer(restoreFocus = true) {
+  imageViewer?.remove();
+  imageViewer = null;
+  viewerImages = [];
+
+  if (!productDialog) {
+    document.body.classList.remove("detail-open");
+  }
+
+  if (restoreFocus) {
+    viewerReturnFocus?.focus();
+  }
+  viewerReturnFocus = null;
+}
+
+function openImageViewer(images, startIndex, title, trigger) {
+  if (!images?.length) return;
+
+  closeImageViewer(false);
+  viewerImages = images;
+  viewerIndex = Math.max(0, Math.min(startIndex, images.length - 1));
+  viewerTitle = title;
+  viewerReturnFocus = trigger ?? document.activeElement;
+
+  const overlay = document.createElement("div");
+  overlay.className = "image-viewer";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", `${title}大图查看`);
+  overlay.innerHTML = `
+    <div class="image-viewer-backdrop" data-close-viewer></div>
+    <div class="image-viewer-stage">
+      <div class="image-viewer-head">
+        <strong>${title}</strong>
+        <span class="image-viewer-counter"></span>
+      </div>
+      <img class="image-viewer-image" src="" alt="">
+      <button class="image-viewer-control image-viewer-prev" type="button" aria-label="上一张">‹</button>
+      <button class="image-viewer-control image-viewer-next" type="button" aria-label="下一张">›</button>
+      <button class="image-viewer-close" type="button" aria-label="关闭大图" data-close-viewer>×</button>
+    </div>
+  `;
+
+  overlay.addEventListener("click", (event) => {
+    if (event.target.closest("[data-close-viewer]")) closeImageViewer();
+    if (event.target.closest(".image-viewer-prev")) changeViewerImage(-1);
+    if (event.target.closest(".image-viewer-next")) changeViewerImage(1);
+  });
+  overlay.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    const focusable = Array.from(overlay.querySelectorAll("button:not([hidden])"));
+    const first = focusable[0];
+    const last = focusable.at(-1);
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  });
+
+  document.body.append(overlay);
+  document.body.classList.add("detail-open");
+  imageViewer = overlay;
+  updateImageViewer();
+  overlay.querySelector(".image-viewer-close")?.focus();
 }
 
 function openProductDetail(panel) {
@@ -226,8 +333,9 @@ function openProductDetail(panel) {
       <button class="detail-close" type="button" aria-label="关闭产品详情" data-close-detail>×</button>
       <div class="detail-gallery image-count-${detail.images.length} detail-${panel.id}${shouldCarousel ? " is-carousel" : ""}">
         ${detail.images.map((src, index) => `
-          <figure class="${index === 0 ? "active" : ""}">
+          <figure class="${index === 0 ? "active" : ""}" role="button" tabindex="0" aria-label="放大查看${title}详情图${index + 1}" data-image-index="${index}">
             <img src="${src}" alt="${title}详情图${index + 1}" loading="eager">
+            <span>放大查看</span>
           </figure>
         `).join("")}
       </div>
@@ -259,7 +367,32 @@ function openProductDetail(panel) {
     }
   });
 
-  overlay.querySelector(".detail-contact")?.addEventListener("click", closeProductDetail);
+  overlay.querySelector(".detail-contact")?.addEventListener("click", () => {
+    consultationOrigin = {
+      panel,
+      scrollTop: window.scrollY,
+      title,
+      activeFilter: productFilters.find((button) => button.classList.contains("active"))?.dataset.filter ?? "all",
+    };
+
+    if (contactReturn) {
+      contactReturn.hidden = false;
+      contactReturn.querySelector("strong").textContent = `返回「${title}」`;
+      contactReturn.querySelector("small").textContent = "回到刚才浏览的位置";
+    }
+
+    closeProductDetail();
+  });
+  overlay.querySelectorAll(".detail-gallery figure").forEach((figure) => {
+    const openFigure = () => openImageViewer(detail.images, Number(figure.dataset.imageIndex), title, figure);
+    figure.addEventListener("click", openFigure);
+    figure.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openFigure();
+      }
+    });
+  });
   document.body.append(overlay);
   document.body.classList.add("detail-open");
   productDialog = overlay;
@@ -283,25 +416,91 @@ productPanels.forEach((panel) => {
   const more = document.createElement("button");
   more.className = "product-more";
   more.type = "button";
-  more.textContent = "查看详情";
+  more.textContent = "查看产品详情";
   copy?.append(more);
 
-  panel.tabIndex = 0;
-  panel.removeAttribute("aria-labelledby");
-  panel.setAttribute("role", "button");
-  panel.setAttribute("aria-label", `查看${title}详情`);
+  const media = panel.querySelector(".product-media");
+  media?.setAttribute("data-category-label", panel.dataset.categoryLabel ?? "产品");
+  media?.setAttribute("role", "button");
+  media?.setAttribute("tabindex", "0");
+  media?.setAttribute("aria-label", `放大查看${title}图片`);
 
-  panel.addEventListener("click", () => openProductDetail(panel));
-  panel.addEventListener("keydown", (event) => {
+  const openCardImage = () => {
+    const detail = productDetails[panel.id];
+    const fallbackImage = panel.querySelector(".product-media img")?.getAttribute("src");
+    const images = detail?.images?.length ? detail.images : fallbackImage ? [fallbackImage] : [];
+    openImageViewer(images, 0, title, media);
+  };
+
+  media?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openCardImage();
+  });
+  media?.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      openProductDetail(panel);
+      openCardImage();
+    }
+  });
+  more.addEventListener("click", () => openProductDetail(panel));
+});
+
+productFilters.forEach((filterButton) => {
+  filterButton.addEventListener("click", () => {
+    const selectedCategory = filterButton.dataset.filter ?? "all";
+    let visibleCount = 0;
+
+    productFilters.forEach((button) => {
+      const isActive = button === filterButton;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+
+    productPanels.forEach((panel) => {
+      const isVisible = selectedCategory === "all" || panel.dataset.category === selectedCategory;
+      panel.hidden = !isVisible;
+      if (isVisible) visibleCount += 1;
+    });
+
+    if (productResult) {
+      productResult.textContent = `当前展示 ${visibleCount} 项产品`;
     }
   });
 });
 
+contactReturn?.addEventListener("click", () => {
+  if (!consultationOrigin) return;
+
+  const { panel, scrollTop, activeFilter } = consultationOrigin;
+  const currentFilter = productFilters.find((button) => button.classList.contains("active"))?.dataset.filter;
+  if (currentFilter !== activeFilter) {
+    const originalFilter = productFilters.find((button) => button.dataset.filter === activeFilter);
+    originalFilter?.click();
+  }
+
+  contactReturn.hidden = true;
+  history.replaceState(null, "", `#${panel.id}`);
+  window.scrollTo({ top: scrollTop, behavior: "smooth" });
+  panel.classList.add("return-highlight");
+
+  window.setTimeout(() => {
+    panel.classList.remove("return-highlight");
+    panel.querySelector(".product-more")?.focus({ preventScroll: true });
+  }, 650);
+});
+
 document.addEventListener("keydown", (event) => {
+  if (imageViewer && event.key === "ArrowLeft") {
+    changeViewerImage(-1);
+  }
+  if (imageViewer && event.key === "ArrowRight") {
+    changeViewerImage(1);
+  }
   if (event.key === "Escape") {
-    closeProductDetail();
+    if (imageViewer) {
+      closeImageViewer();
+    } else {
+      closeProductDetail();
+    }
   }
 });

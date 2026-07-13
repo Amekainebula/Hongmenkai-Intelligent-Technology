@@ -88,8 +88,19 @@
           <p>主要产品全部展示，覆盖车行入口、人行通道、门体围护和配套设施，方便客户快速了解可选产品。</p>
         </div>
 
+        <div class="product-toolbar" aria-label="产品分类筛选">
+          <div class="product-filters" role="group" aria-label="按产品类型筛选">
+            <button class="product-filter active" type="button" data-filter="all" aria-pressed="true">全部产品 <span>15</span></button>
+            <button class="product-filter" type="button" data-filter="gate" aria-pressed="false">智能门体 <span>5</span></button>
+            <button class="product-filter" type="button" data-filter="vehicle" aria-pressed="false">车辆通行 <span>5</span></button>
+            <button class="product-filter" type="button" data-filter="people" aria-pressed="false">人员通行 <span>2</span></button>
+            <button class="product-filter" type="button" data-filter="support" aria-pressed="false">配套设施 <span>3</span></button>
+          </div>
+          <p class="product-result" aria-live="polite">当前展示 15 项产品</p>
+        </div>
+
         <div class="product-stage">
-          <article class="product-panel" id="product-electric-gate">
+          <article class="product-panel" id="product-electric-gate" data-category="gate" data-category-label="智能门体">
             <div class="product-media">
               <img src="assets/products/electric-telescopic-gate.jpg" alt="电动伸缩门产品图" loading="lazy">
             </div>
@@ -105,7 +116,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-sectional-gate">
+          <article class="product-panel" id="product-sectional-gate" data-category="gate" data-category-label="智能门体">
             <div class="product-media">
               <img src="assets/products/sectional-sliding-gate.jpg" alt="段滑门产品图" loading="lazy">
             </div>
@@ -121,7 +132,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-cantilever-gate">
+          <article class="product-panel" id="product-cantilever-gate" data-category="gate" data-category-label="智能门体">
             <div class="product-media">
               <img src="assets/products/cantilever-gate.jpg" alt="悬浮门产品图" loading="lazy">
             </div>
@@ -137,7 +148,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-airborne-gate">
+          <article class="product-panel" id="product-airborne-gate" data-category="vehicle" data-category-label="车辆通行">
             <div class="product-media">
               <img src="assets/products/airborne-gate.jpg" alt="空降闸产品图" loading="lazy">
             </div>
@@ -153,7 +164,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-barrier-gate">
+          <article class="product-panel" id="product-barrier-gate" data-category="vehicle" data-category-label="车辆通行">
             <div class="product-media">
               <img src="assets/products/barrier-gate.jpg" alt="道闸产品图" loading="lazy">
             </div>
@@ -169,7 +180,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-ad-barrier">
+          <article class="product-panel" id="product-ad-barrier" data-category="vehicle" data-category-label="车辆通行">
             <div class="product-media">
               <img src="assets/products/advertising-barrier.jpg" alt="广告道闸产品图" loading="lazy">
             </div>
@@ -185,7 +196,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-lpr">
+          <article class="product-panel" id="product-lpr" data-category="vehicle" data-category-label="车辆通行">
             <div class="product-media">
               <img src="assets/products/license-plate-recognition.jpg" alt="车牌识别产品图" loading="lazy">
             </div>
@@ -201,7 +212,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-turnstile">
+          <article class="product-panel" id="product-turnstile" data-category="people" data-category-label="人员通行">
             <div class="product-media">
               <img src="assets/products/pedestrian-turnstile.jpg" alt="人行通道闸产品图" loading="lazy">
             </div>
@@ -217,7 +228,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-face-terminal">
+          <article class="product-panel" id="product-face-terminal" data-category="people" data-category-label="人员通行">
             <div class="product-media">
               <img src="assets/products/face-temperature-terminal.jpg" alt="测温人脸识别机产品图" loading="lazy">
             </div>
@@ -233,7 +244,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-auto-door">
+          <article class="product-panel" id="product-auto-door" data-category="gate" data-category-label="智能门体">
             <div class="product-media">
               <img src="assets/products/automatic-door.jpg" alt="感应门产品图" loading="lazy">
             </div>
@@ -249,7 +260,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-bollard">
+          <article class="product-panel" id="product-bollard" data-category="vehicle" data-category-label="车辆通行">
             <div class="product-media">
               <img src="assets/products/bollard.jpg" alt="升降柱产品图" loading="lazy">
             </div>
@@ -265,7 +276,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-booth">
+          <article class="product-panel" id="product-booth" data-category="support" data-category-label="配套设施">
             <div class="product-media">
               <img src="assets/products/guard-booth.jpg" alt="岗亭产品图" loading="lazy">
             </div>
@@ -281,7 +292,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-fast-door">
+          <article class="product-panel" id="product-fast-door" data-category="gate" data-category-label="智能门体">
             <div class="product-media">
               <img src="assets/products/fast-door.jpg" alt="工业快速门产品图" loading="lazy">
             </div>
@@ -297,7 +308,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-fence">
+          <article class="product-panel" id="product-fence" data-category="support" data-category-label="配套设施">
             <div class="product-media">
               <img src="assets/products/fence.jpg" alt="护栏产品图" loading="lazy">
             </div>
@@ -313,7 +324,7 @@
             </div>
           </article>
 
-          <article class="product-panel" id="product-flagpole">
+          <article class="product-panel" id="product-flagpole" data-category="support" data-category-label="配套设施">
             <div class="product-media">
               <img src="assets/products/flagpole.jpg" alt="旗杆产品图" loading="lazy">
             </div>
@@ -541,6 +552,13 @@
             <span>地址：京商国际商贸城K区二街SB115号 215号 315号</span>
             <span>QQ：983327039</span>
           </div>
+          <button class="contact-return" type="button" hidden>
+            <span aria-hidden="true">←</span>
+            <span>
+              <strong>返回产品</strong>
+              <small>继续查看刚才的产品</small>
+            </span>
+          </button>
         </div>
 
         <div class="contact-panel" aria-label="快捷联系方式">
@@ -592,4 +610,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
